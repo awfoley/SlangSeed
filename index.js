@@ -12,7 +12,12 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: ['https://awfoley.github.io', 'http://localhost:3000'], // Add allowed origins here
+    methods: ['GET', 'POST'], // Specify allowed HTTP methods
+    credentials: true, // Allow cookies or credentials
+}));
+
 app.use(express.json());
 app.use(helmet()); // Security headers
 
