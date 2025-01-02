@@ -39,12 +39,12 @@ const WordSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     voters: { type: [String], default: [] },
     submitter: { type: String, default: null },
-    verified: { type: Boolean, default: false }, // Marks verified submissions
+    verified: { type: Boolean, default: false },
 });
 
 const SocialTrendSchema = new mongoose.Schema({
     word: { type: String, required: true, unique: true },
-    platform: { type: String, required: true }, // e.g., 'Twitter', 'Instagram'
+    platform: { type: String, required: true },
     mentions: { type: Number, default: 0 },
     lastUpdated: { type: Date, default: Date.now },
 });
@@ -53,11 +53,11 @@ const TokenSchema = new mongoose.Schema({
     word: { type: String, required: true, unique: true },
     tokenName: { type: String, required: true },
     tokenAddress: { type: String, required: true },
-    imageUrl: { type: String, default: '' }, // Image URL for the token
-    description: { type: String, default: '' }, // Description for the token
+    imageUrl: { type: String, default: '' },
+    description: { type: String, default: '' },
     createdAt: { type: Date, default: Date.now },
-    referralReward: { type: Number, default: 0 }, // Referral reward for site
-    siteFee: { type: Number, default: 0 }, // Fee for the site from user contributions
+    referralReward: { type: Number, default: 0 },
+    siteFee: { type: Number, default: 0 },
 });
 
 const Word = mongoose.model('Word', WordSchema);
@@ -86,7 +86,7 @@ const fetchTwitterTrends = async () => {
     try {
         const response = await axios.get('https://api.twitter.com/1.1/trends/place.json', {
             headers: { Authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN}` },
-            params: { id: 1 }, // Global trends
+            params: { id: 1 },
         });
         const trends = response.data[0].trends;
         for (const trend of trends) {
@@ -98,61 +98,6 @@ const fetchTwitterTrends = async () => {
         }
     } catch (err) {
         console.error('Error fetching Twitter trends:', err.message);
-    }
-};
-
-// Create Meme Coin
-const createMemeCoin = async (word, investment, customization) => {
-    try {
-        const generateSymbol = (word) => {
-            const cleanWord = word.replace(/[^a-zA-Z0-9]/g, ''); // Remove non-alphanumeric characters
-            return cleanWord.slice(0, 5).toUpperCase(); // Shorten to 5 characters
-        };
-
-        const generateImage = async (word, customization) => {
-            const prompt = `A ${customization.style} design for the token "${word}" with colors: ${customization.colors}`;
-            const response = await axios.post(
-                'https://api.openai.com/v1/images/generations',
-                {
-                    prompt,
-                    n: 1,
-                    size: '512x512',
-                },
-                {
-                    headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
-                }
-            );
-            return response.data.data[0].url;
-        };
-
-        const generateDescription = (word) => {
-            return `Experience the edge of creativity with ${word}Coin, your gateway to the vibrant world of slang-driven crypto. Fun, edgy, and built for trendsetters!`;
-        };
-
-        const imageUrl = await generateImage(word, customization);
-        const description = generateDescription(word);
-
-        const response = await axios.post('https://api.pump.fun/create-token', {
-            name: `${word}Coin`,
-            symbol: generateSymbol(word),
-        }, {
-            headers: { Authorization: `Bearer ${process.env.PUMP_FUN_API_KEY}` },
-        });
-
-        const referralReward = investment * 0.05; // 5% referral reward
-        const siteFee = investment * 0.10; // 10% site fee
-
-        return {
-            tokenName: response.data.name,
-            tokenAddress: response.data.address,
-            referralReward,
-            siteFee,
-            imageUrl, // Include the image URL
-            description, // Include the description
-        };
-    } catch (err) {
-        console.error(`Error creating token for ${word}:`, err.message);
-        return null;
     }
 };
 
@@ -184,7 +129,7 @@ app.post('/api/submit', validateUser, checkVerified, async (req, res) => {
 // Create Tokens for Top Words
 app.post('/api/create-tokens', async (req, res) => {
     try {
-        const words = await Word.find().sort({ votes: -1 }).limit(5); // Top 5 words
+        const words = await Word.find().sort({ votes: -1 }).limit(5);
         const tokens = [];
 
         for (const word of words) {
@@ -192,7 +137,7 @@ app.post('/api/create-tokens', async (req, res) => {
                 style: 'edgy and fun',
                 colors: 'vibrant and bold',
             };
-            const investment = 1; // Example investment amount in ETH
+            const investment = 1;
             const tokenData = await createMemeCoin(word.word, investment, customization);
             if (tokenData) {
                 const newToken = new Token({
@@ -228,3 +173,14 @@ app.get('/api/trending', async (req, res) => {
 // Get social media trends
 app.get('/api/social-trends', async (req, res) => {
     try {
+        const trends = await SocialTrend.find().sort({ mentions: -1 }).limit(10);
+        res.status(200).json(trends);
+    } catch (err) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
