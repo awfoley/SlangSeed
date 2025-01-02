@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlangSeed</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        header {
+            background-color: #6200ea;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+        main {
+            padding: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .word {
+            background: white;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .word h2 {
+            margin: 0 0 0.5rem 0;
+        }
+        .word p {
+            margin: 0.5rem 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: #6200ea;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #3700b3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SlangSeed</h1>
+        <p>Discover, vote, and create the next trending slang words and tokens!</p>
+    </header>
+    <main>
+        <section id="trending-words">
+            <h2>Trending Words</h2>
+            <div id="words-container"></div>
+        </section>
+    </main>
+    <script>
+        async function fetchTrendingWords() {
+            try {
+                const response = await fetch('http://localhost:5000/api/trending');
+                const words = await response.json();
+                const container = document.getElementById('words-container');
+                container.innerHTML = '';
+
+                words.forEach(word => {
+                    const wordDiv = document.createElement('div');
+                    wordDiv.className = 'word';
+                    wordDiv.innerHTML = `
+                        <h2>${word.word}</h2>
+                        <p>Votes: ${word.votes}</p>
+                        <a href="#" class="button" onclick="voteForWord('${word._id}')">Vote</a>
+                    `;
+                    container.appendChild(wordDiv);
+                });
+            } catch (error) {
+                console.error('Error fetching trending words:', error);
+            }
+        }
+
+        async function voteForWord(wordId) {
+            try {
+                await fetch('http://localhost:5000/api/vote', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-id': 'test-user-id',
+                    },
+                    body: JSON.stringify({ wordId, vote: 1 }),
+                });
+                alert('Vote submitted!');
+                fetchTrendingWords();
+            } catch (error) {
+                console.error('Error voting for word:', error);
+            }
+        }
+
+        fetchTrendingWords();
+    </script>
+</body>
+</html>
