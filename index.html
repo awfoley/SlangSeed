@@ -64,7 +64,9 @@
     <script>
         async function fetchTrendingWords() {
             try {
-                const response = await fetch('http://localhost:5000/api/trending');
+                //const response = await fetch('http://localhost:5000/api/trending');
+                const response = await fetch('https://slangseed-backend.onrender.com/api/trending');
+
                 const words = await response.json();
                 const container = document.getElementById('words-container');
                 container.innerHTML = '';
@@ -86,7 +88,7 @@
 
         async function voteForWord(wordId) {
             try {
-                await fetch('http://localhost:5000/api/vote', {
+                await fetch('https://slangseed-backend.onrender.com/api/vote', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
