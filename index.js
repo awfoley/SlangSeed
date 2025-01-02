@@ -9,7 +9,7 @@ const cron = require('node-cron');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
