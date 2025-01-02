@@ -65,8 +65,9 @@
         async function fetchTrendingWords() {
             try {
                 //const response = await fetch('http://localhost:5000/api/trending');
-                const response = await fetch('https://slangseed-backend.onrender.com/api/trending');
-
+                const response = await fetch('https://slangseed-backend.onrender.com/api/trending', {
+    mode: 'no-cors',
+})
                 const words = await response.json();
                 const container = document.getElementById('words-container');
                 container.innerHTML = '';
